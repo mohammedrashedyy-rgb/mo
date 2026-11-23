@@ -1,0 +1,867 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>المقطر الشمسي - محاكاة تفاعلية | إعداد المعلم محمد راشد</title>
+    <!-- استدعاء خط Cairo و Tajawal من Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&family=Tajawal:wght@400;500;700&display=swap" rel="stylesheet">
+    <!-- مكتبة Tailwind CSS للتنسيق المتجاوب -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            font-family: 'Cairo', 'Tajawal', sans-serif;
+            background-color: #f0f4f8;
+            color: #1e293b;
+            overflow-x: hidden;
+        }
+        /* تدرج الترويسة المطابق للصورة التعليمية */
+        .hero-gradient {
+            background: linear-gradient(135deg, #0d3b2e 0%, #14533c 50%, #0f2942 100%);
+        }
+        /* تنسيق شريط التمرير المخصص */
+        input[type=range] {
+            -webkit-appearance: none;
+            appearance: none;
+            background: transparent;
+            cursor: pointer;
+        }
+        input[type=range]::-webkit-slider-runnable-track {
+            background: linear-gradient(to left, #f59e0b, #fbbf24, #94a3b8);
+            height: 0.6rem;
+            border-radius: 0.5rem;
+        }
+        input[type=range]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            margin-top: -6px;
+            background-color: #ffffff;
+            border: 3px solid #d97706;
+            height: 1.4rem;
+            width: 1.4rem;
+            border-radius: 50%;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+            transition: transform 0.15s ease;
+        }
+        input[type=range]::-webkit-slider-thumb:hover {
+            transform: scale(1.15);
+        }
+        /* تأثير النبض للمرحلة النشطة */
+        .step-active {
+            ring: 4px;
+            transform: translateY(-4px);
+            box-shadow: 0 10px 20px -5px rgba(21, 128, 61, 0.4);
+        }
+        canvas {
+            display: block;
+            width: 100%;
+            height: 100%;
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col justify-between selection:bg-emerald-200 selection:text-emerald-900">
+
+    <!-- 1. الترويسة (Header) -->
+    <header class="hero-gradient text-white shadow-lg relative overflow-hidden">
+        <!-- زخرفة أيقونة شمسية شفافة في الخلفية -->
+        <div class="absolute top-4 left-6 opacity-15 pointer-events-none">
+            <svg class="w-24 h-24 animate-[spin_30s_linear_infinite]" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M12 7a5 5 0 100 10 5 5 0 000-10zm0-5a1 1 0 011 1v2a1 1 0 11-2 0V3a1 1 0 011-1zm0 17a1 1 0 011 1v2a1 1 0 11-2 0v-2a1 1 0 011-1zm9-8a1 1 0 01-1 1h-2a1 1 0 110-2h2a1 1 0 011 1zM5 12a1 1 0 01-1 1H2a1 1 0 110-2h2a1 1 0 011 1zm14.07-6.36a1 1 0 010 1.41l-1.41 1.42a1 1 0 11-1.42-1.42l1.42-1.41a1 1 0 011.41 0zM7.76 16.95a1 1 0 010 1.41l-1.42 1.42a1 1 0 11-1.41-1.42l1.41-1.41a1 1 0 011.42 0zm11.31 1.41a1 1 0 01-1.41 0l-1.42-1.41a1 1 0 111.42-1.42l1.41 1.42a1 1 0 010 1.41zM7.76 7.05a1 1 0 01-1.42 0L4.93 5.64a1 1 0 111.41-1.41l1.42 1.41a1 1 0 010 1.41z"/>
+            </svg>
+        </div>
+
+        <div class="max-w-5xl mx-auto px-4 py-6 sm:py-8 relative z-10 flex flex-col sm:flex-row items-center justify-between gap-4">
+            <div class="text-center sm:text-right">
+                <span class="inline-block bg-white/15 backdrop-blur-sm text-emerald-100 text-xs sm:text-sm font-semibold px-4 py-1.5 rounded-full mb-2 border border-white/20">
+                    ☀️ تطبيقات الطاقة الشمسية
+                </span>
+                <h1 class="text-3xl sm:text-5xl font-extrabold tracking-tight text-white drop-shadow-sm">
+                    المقطر الشمسي
+                </h1>
+            </div>
+
+            <!-- بطاقة اسم المعلم في الترويسة -->
+            <div class="bg-white/10 backdrop-blur-md border border-emerald-300/30 rounded-2xl px-5 py-3 text-center sm:text-left shadow-inner">
+                <p class="text-emerald-200 text-xs font-medium">تصميم ومحاكاة تفاعلية</p>
+                <p class="text-white font-bold text-base sm:text-lg flex items-center justify-center sm:justify-start gap-2">
+                    <span class="w-2.5 h-2.5 rounded-full bg-amber-400 inline-block animate-pulse"></span>
+                    إعداد المعلم: محمد راشد
+                </p>
+            </div>
+        </div>
+    </header>
+
+    <!-- المحتوى الرئيسي -->
+    <main class="max-w-5xl w-full mx-auto px-4 py-6 space-y-6 flex-grow">
+
+        <!-- 2. بطاقة التعريف: ما هو المقطر الشمسي؟ -->
+        <section class="bg-white rounded-2xl shadow-sm border-r-8 border-amber-600 p-5 sm:p-6 transition hover:shadow-md">
+            <h2 class="text-xl sm:text-2xl font-bold text-amber-700 mb-2 flex items-center gap-2">
+                <span>💡</span> ما هو المقطر الشمسي؟
+            </h2>
+            <p class="text-slate-700 text-base sm:text-lg leading-relaxed font-medium">
+                جهاز بسيط يستخدم <span class="text-amber-700 font-bold">حرارة الشمس</span> لتحويل <span class="text-sky-700 font-bold">الماء المالح أو الملوث</span> إلى <span class="text-emerald-700 font-bold">ماء عذب نقي</span> بعملية التقطير.
+            </p>
+        </section>
+
+        <!-- 3. المحاكاة التفاعلية الرئيسية -->
+        <section class="bg-white rounded-2xl shadow-md border-r-8 border-sky-600 overflow-hidden">
+            <!-- شريط أدوات المحاكاة العلوي -->
+            <div class="bg-slate-50 border-b border-slate-200 p-4 sm:px-6 flex flex-wrap items-center justify-between gap-4">
+                <div class="flex items-center gap-2">
+                    <span class="bg-sky-100 text-sky-800 p-2 rounded-xl font-bold text-lg">🔬</span>
+                    <div>
+                        <h2 class="text-lg sm:text-xl font-bold text-slate-800">المختبر التفاعلي للمقطر الشمسي</h2>
+                        <p class="text-xs text-slate-500">تحكم بشدة الشمس وراقب عملية التبخر والتكثف وتجمع الماء العذب</p>
+                    </div>
+                </div>
+
+                <!-- أزرار التحكم بالتشغيل -->
+                <div class="flex items-center gap-2">
+                    <button id="btnTogglePlay" class="bg-emerald-600 hover:bg-emerald-700 active:scale-95 text-white font-bold px-4 py-2.5 rounded-xl shadow-sm transition flex items-center gap-2 text-sm">
+                        <span id="playIcon">⏸️</span>
+                        <span id="playText">إيقاف مؤقت</span>
+                    </button>
+                    <button id="btnReset" class="bg-slate-200 hover:bg-slate-300 active:scale-95 text-slate-700 font-bold px-4 py-2.5 rounded-xl transition flex items-center gap-2 text-sm" title="إعادة التجربة من البداية">
+                        <span>🔄</span>
+                        <span>إعادة ضبط</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- لوحة التحكم بشدة الشمس والعدادات الحية -->
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-4 p-4 sm:p-6 bg-gradient-to-b from-sky-50/60 to-white border-b border-slate-100">
+                <!-- التحكم بشدة سطوع الشمس -->
+                <div class="lg:col-span-5 bg-amber-50/80 border border-amber-200/80 rounded-xl p-4 flex flex-col justify-center">
+                    <div class="flex justify-between items-center mb-2">
+                        <label for="sunSlider" class="font-bold text-amber-900 text-sm sm:text-base flex items-center gap-1.5">
+                            <span>☀️</span> شدة سطوع الشمس:
+                        </label>
+                        <span id="sunLabel" class="bg-amber-500 text-white text-xs font-bold px-2.5 py-1 rounded-lg shadow-sm">
+                            ساطع (80%)
+                        </span>
+                    </div>
+                    <input id="sunSlider" type="range" min="10" max="100" value="80" class="w-full my-1">
+                    <div class="flex justify-between text-[11px] text-amber-800/70 font-semibold mt-1">
+                        <span>☁️ غائم (ضعيف)</span>
+                        <span>⛅ معتدل</span>
+                        <span>☀️ ساطع جداً</span>
+                    </div>
+                </div>
+
+                <!-- العدادات الحية (درجة الحرارة، الماء العذب، الملوحة) -->
+                <div class="lg:col-span-7 grid grid-cols-3 gap-2 sm:gap-3">
+                    <!-- عداد درجة حرارة الحوض -->
+                    <div class="bg-rose-50 border border-rose-200 rounded-xl p-3 text-center flex flex-col justify-center">
+                        <span class="text-xs text-rose-700 font-bold mb-1">🌡️ حرارة الحوض</span>
+                        <div class="text-xl sm:text-2xl font-extrabold text-rose-600" dir="ltr">
+                            <span id="tempDisplay">68</span> °C
+                        </div>
+                        <span id="evapStatus" class="text-[11px] text-rose-500 font-semibold mt-0.5">تبخر نشط</span>
+                    </div>
+
+                    <!-- عداد الماء العذب المُنتج -->
+                    <div class="bg-emerald-50 border border-emerald-200 rounded-xl p-3 text-center flex flex-col justify-center">
+                        <span class="text-xs text-emerald-800 font-bold mb-1">💧 ماء عذب نقي</span>
+                        <div class="text-xl sm:text-2xl font-extrabold text-emerald-600" dir="ltr">
+                            <span id="freshWaterDisplay">0</span> ml
+                        </div>
+                        <span class="text-[11px] text-emerald-600 font-semibold mt-0.5">نقاوة 100%</span>
+                    </div>
+
+                    <!-- عداد تركيز الأملاح في الحوض -->
+                    <div class="bg-sky-50 border border-sky-200 rounded-xl p-3 text-center flex flex-col justify-center">
+                        <span class="text-xs text-sky-800 font-bold mb-1">🧂 ملوحة الحوض</span>
+                        <div class="text-xl sm:text-2xl font-extrabold text-sky-700" dir="ltr">
+                            <span id="salinityDisplay">3.5</span> %
+                        </div>
+                        <span class="text-[11px] text-sky-600 font-semibold mt-0.5">تبقى في القاع</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- منطقة الرسم التفاعلي (Canvas) -->
+            <div class="relative w-full h-[360px] sm:h-[430px] bg-gradient-to-b from-sky-100/70 via-white to-slate-50 select-none">
+                <canvas id="stillCanvas"></canvas>
+
+                <!-- صندوق شرح المرحلة المختارة يظهر فوق الرسم -->
+                <div id="stageBanner" class="absolute bottom-3 right-3 left-3 sm:left-auto sm:max-w-md bg-white/95 backdrop-blur-md border border-slate-200 shadow-lg rounded-xl p-3 transition-all duration-300">
+                    <div class="flex items-start gap-2.5">
+                        <span id="stageBadge" class="bg-emerald-600 text-white text-xs font-bold px-2.5 py-1 rounded-lg shrink-0 mt-0.5">العملية الكاملة</span>
+                        <div>
+                            <h4 id="stageTitle" class="font-bold text-slate-800 text-sm">دورة التقطير الشمسي المستمرة</h4>
+                            <p id="stageDesc" class="text-xs text-slate-600 leading-relaxed mt-0.5">
+                                انقر على أي خطوة من خطوات "مبدأ العمل" أدناه لتسليط الضوء عليها في الرسم التفاعلي!
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- أزرار مراحل العمل التفاعلية (مبدأ العمل) -->
+            <div class="p-4 sm:p-6 bg-slate-50 border-t border-slate-200">
+                <div class="flex flex-wrap items-center justify-between gap-2 mb-3">
+                    <h3 class="text-lg sm:text-xl font-bold text-emerald-800 flex items-center gap-2">
+                        <span>⚙️</span> مبدأ العمل (انقر على أي مرحلة للتركيز عليها):
+                    </h3>
+                    <button id="btnShowAll" class="text-xs font-bold text-sky-700 hover:text-sky-900 bg-sky-100 hover:bg-sky-200 px-3 py-1.5 rounded-lg transition">
+                        عرض جميع المراحل معاً
+                    </button>
+                </div>
+
+                <!-- مخطط الخطوات الأربع التفاعلي -->
+                <div class="grid grid-cols-1 sm:grid-cols-4 gap-3 items-center">
+                    <button data-step="1" class="step-btn group relative bg-emerald-700 hover:bg-emerald-600 text-white p-3.5 rounded-xl font-bold text-center transition-all shadow-sm flex flex-col items-center justify-center gap-1">
+                        <span class="text-xs bg-white/20 px-2 py-0.5 rounded-full">الخطوة 1</span>
+                        <span class="text-sm sm:text-base">تسخين الماء بالشمس</span>
+                    </button>
+
+                    <button data-step="2" class="step-btn group relative bg-emerald-700 hover:bg-emerald-600 text-white p-3.5 rounded-xl font-bold text-center transition-all shadow-sm flex flex-col items-center justify-center gap-1">
+                        <span class="text-xs bg-white/20 px-2 py-0.5 rounded-full">الخطوة 2</span>
+                        <span class="text-sm sm:text-base">تبخر الماء فقط</span>
+                    </button>
+
+                    <button data-step="3" class="step-btn group relative bg-emerald-700 hover:bg-emerald-600 text-white p-3.5 rounded-xl font-bold text-center transition-all shadow-sm flex flex-col items-center justify-center gap-1">
+                        <span class="text-xs bg-white/20 px-2 py-0.5 rounded-full">الخطوة 3</span>
+                        <span class="text-sm sm:text-base">تكثف على الغطاء البارد</span>
+                    </button>
+
+                    <button data-step="4" class="step-btn group relative bg-emerald-700 hover:bg-emerald-600 text-white p-3.5 rounded-xl font-bold text-center transition-all shadow-sm flex flex-col items-center justify-center gap-1">
+                        <span class="text-xs bg-white/20 px-2 py-0.5 rounded-full">الخطوة 4</span>
+                        <span class="text-sm sm:text-base">انزلاق وجمع الماء العذب</span>
+                    </button>
+                </div>
+
+                <!-- ملاحظة علمية هامة مطابقة للصورة -->
+                <div class="mt-4 bg-amber-50 border border-amber-200 rounded-xl p-3 text-center">
+                    <p class="text-slate-800 text-sm sm:text-base font-medium">
+                        📌 ملاحظة علمية: تبقى <span class="font-extrabold text-amber-800">الأملاح والشوائب</span> في الحوض الأسود لأنها لا تتبخر مع الماء.
+                    </p>
+                </div>
+            </div>
+        </section>
+
+        <!-- 4. بطاقتا المزايا والعيوب -->
+        <section class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <!-- بطاقة المزايا -->
+            <div class="bg-white rounded-2xl shadow-sm border-r-8 border-emerald-600 p-5 sm:p-6 transition hover:shadow-md">
+                <h3 class="text-xl font-bold text-emerald-700 mb-3 flex items-center gap-2">
+                    <span>✅</span> المزايا
+                </h3>
+                <ul class="space-y-2.5 text-slate-700 font-medium text-base">
+                    <li class="flex items-center gap-2.5">
+                        <span class="w-2 h-2 rounded-full bg-emerald-600 shrink-0"></span>
+                        <span>لا يحتاج وقوداً أو كهرباء.</span>
+                    </li>
+                    <li class="flex items-center gap-2.5">
+                        <span class="w-2 h-2 rounded-full bg-emerald-600 shrink-0"></span>
+                        <span>بسيط التصميم ورخيص التكلفة.</span>
+                    </li>
+                    <li class="flex items-center gap-2.5">
+                        <span class="w-2 h-2 rounded-full bg-emerald-600 shrink-0"></span>
+                        <span>صديق للبيئة (طاقة نظيفة متجددة).</span>
+                    </li>
+                    <li class="flex items-center gap-2.5">
+                        <span class="w-2 h-2 rounded-full bg-emerald-600 shrink-0"></span>
+                        <span>مفيد جداً في المناطق الجافة والساحلية.</span>
+                    </li>
+                </ul>
+            </div>
+
+            <!-- بطاقة العيوب -->
+            <div class="bg-white rounded-2xl shadow-sm border-r-8 border-rose-600 p-5 sm:p-6 transition hover:shadow-md">
+                <h3 class="text-xl font-bold text-rose-700 mb-3 flex items-center gap-2">
+                    <span>⚠️</span> العيوب
+                </h3>
+                <ul class="space-y-2.5 text-slate-700 font-medium text-base">
+                    <li class="flex items-center gap-2.5">
+                        <span class="w-2 h-2 rounded-full bg-rose-600 shrink-0"></span>
+                        <span>إنتاجه من الماء العذب قليل نسبياً.</span>
+                    </li>
+                    <li class="flex items-center gap-2.5">
+                        <span class="w-2 h-2 rounded-full bg-rose-600 shrink-0"></span>
+                        <span>يحتاج إلى مساحة واسعة لتركيب الأحواض.</span>
+                    </li>
+                    <li class="flex items-center gap-2.5">
+                        <span class="w-2 h-2 rounded-full bg-rose-600 shrink-0"></span>
+                        <span>يعتمد بشكل مباشر على سطوع الشمس.</span>
+                    </li>
+                </ul>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- 5. التذييل (Footer) -->
+    <footer class="bg-[#0f5132] text-white mt-8 border-t-4 border-emerald-400">
+        <div class="max-w-5xl mx-auto px-4 py-4 flex flex-col sm:flex-row items-center justify-between gap-2 text-sm sm:text-base font-semibold">
+            <div class="flex items-center gap-2">
+                <span>📘</span>
+                <span>التكنولوجيا - الصف التاسع - الطاقة النظيفة</span>
+            </div>
+            <div class="bg-white/15 px-4 py-1 rounded-full text-amber-200 font-bold">
+                إعداد المعلم: محمد راشد
+            </div>
+        </div>
+    </footer>
+
+    <!-- السكربت التفاعلي للمحاكاة الفيزيائية والرسوم المتحركة -->
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const canvas = document.getElementById('stillCanvas');
+            const ctx = canvas.getContext('2d');
+
+            // عناصر واجهة التحكم
+            const sunSlider = document.getElementById('sunSlider');
+            const sunLabel = document.getElementById('sunLabel');
+            const tempDisplay = document.getElementById('tempDisplay');
+            const evapStatus = document.getElementById('evapStatus');
+            const freshWaterDisplay = document.getElementById('freshWaterDisplay');
+            const salinityDisplay = document.getElementById('salinityDisplay');
+            const btnTogglePlay = document.getElementById('btnTogglePlay');
+            const playIcon = document.getElementById('playIcon');
+            const playText = document.getElementById('playText');
+            const btnReset = document.getElementById('btnReset');
+            const btnShowAll = document.getElementById('btnShowAll');
+            const stepBtns = document.querySelectorAll('.step-btn');
+
+            // عناصر لوحة شرح المرحلة
+            const stageBadge = document.getElementById('stageBadge');
+            const stageTitle = document.getElementById('stageTitle');
+            const stageDesc = document.getElementById('stageDesc');
+
+            // حالة المحاكاة
+            let isPlaying = true;
+            let sunIntensity = 80; // 10 - 100
+            let currentTemp = 68;  // درجة مئوية
+            let saltWaterLevel = 1.0; // من 1.0 إلى 0.35
+            let freshWaterCollected = 0; // ملليلتر (0 - 500)
+            let activeStep = 0; // 0 = الكل، 1..4 = خطوة محددة
+            let frameCount = 0;
+
+            // مصفوفات الجزيئات المتحركة
+            let vaporParticles = [];
+            let condensedDrops = [];
+            let fallingDrops = [];
+            let saltParticles = [];
+
+            // بيانات المراحل الأربع عند النقر
+            const stepInfo = {
+                0: {
+                    badge: 'العملية الكاملة',
+                    color: 'bg-emerald-600',
+                    title: 'دورة التقطير الشمسي المستمرة',
+                    desc: 'تسخن الشمس الماء المالح فيتبخر الماء النقي ويتكثف على الغطاء الزجاجي البارد ثم ينزلق ليُجمع كماء عذب.'
+                },
+                1: {
+                    badge: 'الخطوة 1',
+                    color: 'bg-amber-600',
+                    title: 'تسخين الماء بالشمس',
+                    desc: 'تنفذ أشعة الشمس عبر الغطاء الزجاجي الشفاف، ويمتص الحوض الأسود الحرارة بكفاءة عالية لتسخين الماء المالح.'
+                },
+                2: {
+                    badge: 'الخطوة 2',
+                    color: 'bg-rose-600',
+                    title: 'تبخر الماء فقط (دون الأملاح)',
+                    desc: 'عندما يسخن الماء يتحول إلى بخار ماء نقي يتصاعد لأعلى، بينما تبقى جزيئات الأملاح والشوائب ثقيلة في قاع الحوض.'
+                },
+                3: {
+                    badge: 'الخطوة 3',
+                    color: 'bg-sky-600',
+                    title: 'تكثف البخار على الغطاء البارد',
+                    desc: 'يلامس بخار الماء الساخن السطح الداخلي للغطاء الزجاجي المائل (الأقل حرارة)، فيفقد حرارته ويتكثف على شكل قطرات ماء عذب.'
+                },
+                4: {
+                    badge: 'الخطوة 4',
+                    color: 'bg-teal-600',
+                    title: 'انزلاق وجمع الماء العذب',
+                    desc: 'بسبب ميلان الغطاء الزجاجي، تنزلق قطرات الماء العذب نحو قناة التجميع الجانبية وتنساب إلى وعاء الماء العذب النقي.'
+                }
+            };
+
+            // تهيئة جزيئات الأملاح في الحوض
+            function initSaltParticles() {
+                saltParticles = [];
+                for (let i = 0; i < 45; i++) {
+                    saltParticles.push({
+                        rx: Math.random(), // نسبة العرض داخل الحوض
+                        ry: Math.random(), // نسبة الارتفاع داخل الماء المالح
+                        size: 2 + Math.random() * 2.5
+                    });
+                }
+            }
+
+            // ضبط أبعاد الـ Canvas بدقة عالية (Retina support)
+            function resizeCanvas() {
+                const rect = canvas.parentElement.getBoundingClientRect();
+                const dpr = window.devicePixelRatio || 1;
+                canvas.width = rect.width * dpr;
+                canvas.height = rect.height * dpr;
+                ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+            }
+
+            window.addEventListener('resize', resizeCanvas);
+            resizeCanvas();
+            initSaltParticles();
+
+            // تحديث واجهة شدة الشمس
+            sunSlider.addEventListener('input', (e) => {
+                sunIntensity = parseInt(e.target.value, 10);
+                let desc = 'معتدل';
+                if (sunIntensity < 35) desc = 'غائم / ضعيف';
+                else if (sunIntensity < 70) desc = 'معتدل';
+                else if (sunIntensity < 90) desc = 'ساطع';
+                else desc = 'ساطع جداً';
+                sunLabel.textContent = `${desc} (${sunIntensity}%)`;
+            });
+
+            // زر إيقاف / تشغيل
+            btnTogglePlay.addEventListener('click', () => {
+                isPlaying = !isPlaying;
+                if (isPlaying) {
+                    playIcon.textContent = '⏸️';
+                    playText.textContent = 'إيقاف مؤقت';
+                    btnTogglePlay.classList.replace('bg-amber-600', 'bg-emerald-600');
+                    btnTogglePlay.classList.replace('hover:bg-amber-700', 'hover:bg-emerald-700');
+                } else {
+                    playIcon.textContent = '▶️';
+                    playText.textContent = 'استئناف';
+                    btnTogglePlay.classList.replace('bg-emerald-600', 'bg-amber-600');
+                    btnTogglePlay.classList.replace('hover:bg-emerald-700', 'hover:bg-amber-700');
+                }
+            });
+
+            // زر إعادة الضبط
+            btnReset.addEventListener('click', () => {
+                saltWaterLevel = 1.0;
+                freshWaterCollected = 0;
+                vaporParticles = [];
+                condensedDrops = [];
+                fallingDrops = [];
+                setActiveStep(0);
+                updateCounters();
+            });
+
+            // اختيار مرحلة من مبدأ العمل
+            function setActiveStep(step) {
+                activeStep = step;
+                stepBtns.forEach(btn => {
+                    const s = parseInt(btn.dataset.step, 10);
+                    if (s === step) {
+                        btn.classList.add('ring-4', 'ring-amber-400', 'scale-[1.03]', 'bg-emerald-800');
+                    } else {
+                        btn.classList.remove('ring-4', 'ring-amber-400', 'scale-[1.03]', 'bg-emerald-800');
+                    }
+                });
+
+                const info = stepInfo[step];
+                stageBadge.textContent = info.badge;
+                stageBadge.className = `${info.color} text-white text-xs font-bold px-2.5 py-1 rounded-lg shrink-0 mt-0.5`;
+                stageTitle.textContent = info.title;
+                stageDesc.textContent = info.desc;
+            }
+
+            stepBtns.forEach(btn => {
+                btn.addEventListener('click', () => {
+                    const s = parseInt(btn.dataset.step, 10);
+                    setActiveStep(activeStep === s ? 0 : s);
+                });
+            });
+
+            btnShowAll.addEventListener('click', () => setActiveStep(0));
+
+            // تحديث العدادات الرقمية
+            function updateCounters() {
+                const targetTemp = Math.round(24 + (sunIntensity / 100) * 62);
+                currentTemp += (targetTemp - currentTemp) * 0.05;
+                tempDisplay.textContent = Math.round(currentTemp);
+
+                if (currentTemp < 42) {
+                    evapStatus.textContent = 'تبخر بطيء جداً';
+                } else if (currentTemp < 65) {
+                    evapStatus.textContent = 'تبخر متوسط';
+                } else {
+                    evapStatus.textContent = 'تبخر نشط وسريع';
+                }
+
+                freshWaterDisplay.textContent = Math.floor(freshWaterCollected);
+                // زيادة نسبة الملوحة كلما تبخر الماء العذب وبقيت الأملاح
+                const salinity = (3.5 / Math.max(0.45, saltWaterLevel)).toFixed(1);
+                salinityDisplay.textContent = salinity;
+            }
+
+            // رسم سهم أحمر متحرك للتبخر (مشابه للصورة التعليمية)
+            function drawEvapArrow(x, yTop, yBottom, alpha) {
+                if (alpha <= 0.05) return;
+                ctx.save();
+                ctx.globalAlpha = alpha;
+                ctx.strokeStyle = '#dc2626';
+                ctx.fillStyle = '#dc2626';
+                ctx.lineWidth = 3;
+                ctx.lineCap = 'round';
+
+                // خط السهم
+                ctx.beginPath();
+                ctx.moveTo(x, yBottom);
+                ctx.lineTo(x, yTop + 8);
+                ctx.stroke();
+
+                // رأس السهم
+                ctx.beginPath();
+                ctx.moveTo(x, yTop);
+                ctx.lineTo(x - 6, yTop + 10);
+                ctx.lineTo(x + 6, yTop + 10);
+                ctx.closePath();
+                ctx.fill();
+                ctx.restore();
+            }
+
+            // حلقة الرسم والتحديث الرئيسية
+            function animate() {
+                const width = canvas.width / (window.devicePixelRatio || 1);
+                const height = canvas.height / (window.devicePixelRatio || 1);
+
+                ctx.clearRect(0, 0, width, height);
+
+                // تحديد الإحداثيات المتجاوبة للمقطر الشمسي (مطابقة لتخطيط الصورة التعليمية)
+                const isMobile = width < 520;
+                const stillLeft = isMobile ? width * 0.14 : width * 0.22;
+                const stillRight = isMobile ? width * 0.80 : width * 0.74;
+                const stillWidth = stillRight - stillLeft;
+
+                const baseBottom = height * 0.76;
+                const leftWallTop = height * 0.34;
+                const rightWallTop = height * 0.56;
+                const basinHeight = height * 0.14;
+                const basinTop = baseBottom - basinHeight;
+
+                // دالة مساعدة لحساب ارتفاع الغطاء الزجاجي عند أي نقطة X
+                const getGlassY = (x) => {
+                    const t = (x - stillLeft) / stillWidth;
+                    return leftWallTop + t * (rightWallTop - leftWallTop);
+                };
+
+                // 1. رسم الشمس وأشعتها المتحركة (يسار أعلى الصورة)
+                const sunX = isMobile ? width * 0.16 : width * 0.22;
+                const sunY = height * 0.15;
+                const sunRadius = isMobile ? 22 : 28;
+                const sunFactor = sunIntensity / 100;
+
+                ctx.save();
+                if (activeStep !== 0 && activeStep !== 1) ctx.globalAlpha = 0.35;
+
+                // هالة الشمس المتوهجة
+                const glow = ctx.createRadialGradient(sunX, sunY, sunRadius * 0.5, sunX, sunY, sunRadius * (1.8 + sunFactor * 0.8));
+                glow.addColorStop(0, `rgba(251, 191, 36, ${0.45 * sunFactor})`);
+                glow.addColorStop(1, 'rgba(251, 191, 36, 0)');
+                ctx.fillStyle = glow;
+                ctx.beginPath();
+                ctx.arc(sunX, sunY, sunRadius * 2.6, 0, Math.PI * 2);
+                ctx.fill();
+
+                // قرص الشمس
+                ctx.fillStyle = sunIntensity < 35 ? '#fcd34d' : '#facc15';
+                ctx.beginPath();
+                ctx.arc(sunX, sunY, sunRadius, 0, Math.PI * 2);
+                ctx.fill();
+
+                // أشعة الشمس القصيرة المحيطة بالقرص
+                ctx.strokeStyle = '#facc15';
+                ctx.lineWidth = 3.5;
+                ctx.lineCap = 'round';
+                const rayAngleOffset = isPlaying ? frameCount * 0.01 : 0;
+                for (let i = 0; i < 8; i++) {
+                    const angle = (i * Math.PI) / 4 + rayAngleOffset;
+                    const r1 = sunRadius + 6;
+                    const r2 = sunRadius + 13;
+                    ctx.beginPath();
+                    ctx.moveTo(sunX + Math.cos(angle) * r1, sunY + Math.sin(angle) * r1);
+                    ctx.lineTo(sunX + Math.cos(angle) * r2, sunY + Math.sin(angle) * r2);
+                    ctx.stroke();
+                }
+
+                // حزم أشعة الشمس المتقطعة النافذة نحو المقطر (مطابقة للصورة)
+                ctx.strokeStyle = `rgba(245, 158, 11, ${0.35 + sunFactor * 0.65})`;
+                ctx.lineWidth = 3.5;
+                ctx.setLineDash([8, 7]);
+                if (isPlaying) ctx.lineDashOffset = -frameCount * (0.6 + sunFactor);
+
+                for (let r = 0; r < 3; r++) {
+                    const targetX = stillLeft + stillWidth * (0.25 + r * 0.22);
+                    const targetY = basinTop + 10;
+                    ctx.beginPath();
+                    ctx.moveTo(sunX + 20 + r * 8, sunY + 20);
+                    ctx.lineTo(targetX, targetY);
+                    ctx.stroke();
+                }
+                ctx.setLineDash([]);
+
+                // نص "أشعة الشمس"
+                ctx.fillStyle = '#b45309';
+                ctx.font = 'bold 15px Cairo, sans-serif';
+                ctx.textAlign = 'right';
+                ctx.fillText('أشعة الشمس', sunX + sunRadius + (isMobile ? 95 : 135), sunY + 12);
+                ctx.restore();
+
+                // 2. رسم هيكل الحوض الأسود الممتص للحرارة
+                ctx.save();
+                // الجدار الخلفي الأيسر المرتفع
+                ctx.fillStyle = '#475569';
+                ctx.fillRect(stillLeft - 6, leftWallTop, 8, baseBottom - leftWallTop);
+
+                // الحوض الأسود السفلي
+                ctx.fillStyle = '#1e293b';
+                ctx.fillRect(stillLeft - 6, basinTop, stillWidth + 12, basinHeight + 6);
+
+                // تسمية "حوض أسود يمتص الحرارة" أسفل اليسار
+                ctx.fillStyle = '#334155';
+                ctx.font = 'bold 13px Cairo, sans-serif';
+                ctx.textAlign = 'left';
+                ctx.fillText('حوض أسود يمتص الحرارة', stillLeft, baseBottom + 24);
+                ctx.restore();
+
+                // 3. رسم الماء المالح وجزيئات الأملاح داخله
+                const maxWaterH = basinHeight - 10;
+                const currentWaterH = maxWaterH * saltWaterLevel;
+                const waterTopY = baseBottom - currentWaterH;
+                const waterWidth = stillWidth - 36; // ترك مساحة لقناة تجميع الماء العذب يميناً
+
+                ctx.save();
+                // لون الماء المالح يتدرج للدفء مع ارتفاع الحرارة
+                const heatRatio = Math.min(1, Math.max(0, (currentTemp - 25) / 60));
+                const waterGrad = ctx.createLinearGradient(0, waterTopY, 0, baseBottom);
+                waterGrad.addColorStop(0, heatRatio > 0.6 ? '#38bdf8' : '#29b6f6');
+                waterGrad.addColorStop(1, '#0284c7');
+                ctx.fillStyle = waterGrad;
+                ctx.fillRect(stillLeft + 4, waterTopY, waterWidth, currentWaterH);
+
+                // جزيئات الأملاح والشوائب تبقى في الحوض ولا تتبخر
+                ctx.fillStyle = 'rgba(255, 255, 255, 0.85)';
+                saltParticles.forEach(p => {
+                    const sx = stillLeft + 10 + p.rx * (waterWidth - 16);
+                    // تتركز الأملاح في القاع كلما قل منسوب الماء
+                    const sy = waterTopY + 6 + p.ry * (currentWaterH - 10);
+                    ctx.beginPath();
+                    ctx.arc(sx, sy, p.size, 0, Math.PI * 2);
+                    ctx.fill();
+                });
+
+                // نص "ماء مالح" داخل الحوض
+                ctx.fillStyle = '#ffffff';
+                ctx.font = 'bold 15px Cairo, sans-serif';
+                ctx.textAlign = 'center';
+                ctx.fillText('ماء مالح', stillLeft + waterWidth / 2, waterTopY + currentWaterH / 2 + 5);
+                ctx.restore();
+
+                // 4. عملية التبخر (أسهم حمراء + جزيئات بخار متصاعدة)
+                ctx.save();
+                if (activeStep !== 0 && activeStep !== 2) ctx.globalAlpha = 0.25;
+
+                // توليد بخار جديد حسب شدة الشمس
+                if (isPlaying && saltWaterLevel > 0.36 && Math.random() < sunFactor * 0.45) {
+                    const vx = stillLeft + 25 + Math.random() * (waterWidth - 45);
+                    vaporParticles.push({
+                        x: vx,
+                        y: waterTopY - 2,
+                        vy: 0.6 + sunFactor * 1.1,
+                        wobble: Math.random() * Math.PI * 2,
+                        alpha: 0.85
+                    });
+                }
+
+                // تحديث ورسم جزيئات البخار
+                for (let i = vaporParticles.length - 1; i >= 0; i--) {
+                    const v = vaporParticles[i];
+                    if (isPlaying) {
+                        v.y -= v.vy;
+                        v.wobble += 0.08;
+                        v.x += Math.sin(v.wobble) * 0.4;
+                    }
+                    const ceilingY = getGlassY(v.x) + 8;
+                    if (v.y <= ceilingY) {
+                        // عند اصطدام البخار بالغطاء الزجاجي البارد يتحول إلى قطرة متكثفة
+                        if (condensedDrops.length < 28) {
+                            condensedDrops.push({
+                                x: v.x,
+                                size: 2.2,
+                                maxSize: 4.2 + Math.random() * 1.5,
+                                sliding: false
+                            });
+                        }
+                        vaporParticles.splice(i, 1);
+                    } else {
+                        ctx.fillStyle = `rgba(186, 230, 253, ${v.alpha})`;
+                        ctx.beginPath();
+                        ctx.arc(v.x, v.y, 4, 0, Math.PI * 2);
+                        ctx.fill();
+                    }
+                }
+
+                // رسم الأسهم الحمراء المتحركة وكلمة "تبخر" كما في الصورة
+                const arrowBounce = isPlaying ? Math.sin(frameCount * 0.08) * 4 : 0;
+                const arrowAlpha = 0.3 + sunFactor * 0.7;
+                const x1 = stillLeft + waterWidth * 0.28;
+                const x2 = stillLeft + waterWidth * 0.68;
+                drawEvapArrow(x1, waterTopY - 38 + arrowBounce, waterTopY - 6 + arrowBounce, arrowAlpha);
+                drawEvapArrow(x2, waterTopY - 38 + arrowBounce, waterTopY - 6 + arrowBounce, arrowAlpha);
+
+                ctx.fillStyle = '#dc2626';
+                ctx.font = 'bold 14px Cairo, sans-serif';
+                ctx.textAlign = 'center';
+                ctx.fillText('تبخر', (x1 + x2) / 2, waterTopY - 12);
+                ctx.restore();
+
+                // 5. الغطاء الزجاجي المائل والتكثف عليه
+                ctx.save();
+                // رسم لوح الزجاج المائل
+                ctx.strokeStyle = '#0284c7';
+                ctx.lineWidth = 5;
+                ctx.beginPath();
+                ctx.moveTo(stillLeft, leftWallTop);
+                ctx.lineTo(stillRight, rightWallTop);
+                ctx.stroke();
+
+                // طبقة زجاجية لامعة
+                ctx.strokeStyle = 'rgba(186, 230, 253, 0.7)';
+                ctx.lineWidth = 2;
+                ctx.beginPath();
+                ctx.moveTo(stillLeft, leftWallTop + 3);
+                ctx.lineTo(stillRight, rightWallTop + 3);
+                ctx.stroke();
+
+                // تسمية "تكثف على الغطاء" فوق الزجاج المائل
+                if (activeStep === 0 || activeStep === 3) {
+                    ctx.fillStyle = '#0369a1';
+                    ctx.font = 'bold 15px Cairo, sans-serif';
+                    ctx.textAlign = 'center';
+                    ctx.fillText('تكثف على الغطاء', stillLeft + stillWidth * 0.56, getGlassY(stillLeft + stillWidth * 0.56) - 14);
+                }
+                ctx.restore();
+
+                // 6. قطرات الماء المتكثفة والمنزلقة نحو قناة التجميع
+                const troughX = stillRight - 26;
+                const troughY = basinTop - 2;
+
+                ctx.save();
+                if (activeStep !== 0 && activeStep !== 3 && activeStep !== 4) ctx.globalAlpha = 0.3;
+
+                for (let i = condensedDrops.length - 1; i >= 0; i--) {
+                    const d = condensedDrops[i];
+                    if (isPlaying) {
+                        if (d.size < d.maxSize) {
+                            d.size += 0.025 * sunFactor;
+                        } else {
+                            d.sliding = true;
+                        }
+                        if (d.sliding) {
+                            d.x += 1.35; // انزلاق القطرة لليمين مع ميلان الغطاء
+                        }
+                    }
+
+                    const dy = getGlassY(d.x) + d.size + 2;
+
+                    // رسم شكل قطرة ماء متدلية
+                    ctx.fillStyle = '#0ea5e9';
+                    ctx.beginPath();
+                    ctx.arc(d.x, dy, d.size, 0, Math.PI * 2);
+                    ctx.fill();
+
+                    // عند وصول القطرة إلى نهاية الغطاء فوق قناة التجميع تسقط للأسفل
+                    if (d.x >= troughX + 6) {
+                        fallingDrops.push({
+                            x: troughX + 10,
+                            y: dy,
+                            vy: 2.2
+                        });
+                        condensedDrops.splice(i, 1);
+                    }
+                }
+                ctx.restore();
+
+                // 7. قناة التجميع الجانبية، الأنبوب، ووعاء جمع "ماء عذب"
+                ctx.save();
+                if (activeStep !== 0 && activeStep !== 4) ctx.globalAlpha = 0.4;
+
+                // قناة تجميع صغيرة على الطرف الأيمن للحوض
+                ctx.fillStyle = '#cbd5e1';
+                ctx.fillRect(troughX, troughY, 26, 7);
+
+                // أنبوب تصريف الماء العذب للأسفل
+                ctx.strokeStyle = '#0d9488';
+                ctx.lineWidth = 3;
+                ctx.setLineDash([4, 3]);
+                ctx.beginPath();
+                ctx.moveTo(troughX + 13, troughY + 7);
+                ctx.lineTo(troughX + 13, baseBottom + 14);
+                ctx.stroke();
+                ctx.setLineDash([]);
+
+                // رسم القطرات الساقطة في أنبوب التجميع
+                for (let i = fallingDrops.length - 1; i >= 0; i--) {
+                    const fd = fallingDrops[i];
+                    if (isPlaying) {
+                        fd.y += fd.vy;
+                    }
+                    ctx.fillStyle = '#0284c7';
+                    ctx.beginPath();
+                    ctx.arc(fd.x + 3, fd.y, 3.2, 0, Math.PI * 2);
+                    ctx.fill();
+
+                    if (fd.y >= baseBottom + 14) {
+                        fallingDrops.splice(i, 1);
+                        // زيادة منسوب الماء العذب ونقصان الماء المالح
+                        if (saltWaterLevel > 0.36) {
+                            freshWaterCollected = Math.min(500, freshWaterCollected + 1.5);
+                            saltWaterLevel = Math.max(0.36, saltWaterLevel - 0.0018);
+                        }
+                    }
+                }
+
+                // وعاء تجميع الماء العذب (أسفل اليمين)
+                const beakerW = 76;
+                const beakerH = 44;
+                const beakerX = troughX - 24;
+                const beakerY = baseBottom + 14;
+
+                // رسم حدود الوعاء الزجاجي
+                ctx.strokeStyle = '#0f766e';
+                ctx.lineWidth = 2.5;
+                ctx.fillStyle = 'rgba(255, 255, 255, 0.8)';
+                ctx.beginPath();
+                ctx.roundRect(beakerX, beakerY, beakerW, beakerH, [0, 0, 8, 8]);
+                ctx.fill();
+                ctx.stroke();
+
+                // رسم مستوى الماء العذب داخل الوعاء
+                const freshFillRatio = Math.min(1, freshWaterCollected / 500);
+                const freshH = (beakerH - 6) * Math.max(0.12, freshFillRatio);
+                ctx.fillStyle = '#38bdf8';
+                ctx.beginPath();
+                ctx.roundRect(beakerX + 2, beakerY + beakerH - freshH - 2, beakerW - 4, freshH, [0, 0, 6, 6]);
+                ctx.fill();
+
+                // تسمية "ماء عذب" بجانب/أسفل الوعاء
+                ctx.fillStyle = '#065f46';
+                ctx.font = 'bold 15px Cairo, sans-serif';
+                ctx.textAlign = 'center';
+                ctx.fillText('ماء عذب', beakerX + beakerW / 2, beakerY + beakerH + 19);
+                ctx.restore();
+
+                if (isPlaying) {
+                    frameCount++;
+                    if (frameCount % 6 === 0) {
+                        updateCounters();
+                    }
+                }
+
+                requestAnimationFrame(animate);
+            }
+
+            // بدء المحاكاة
+            animate();
+        });
+    </script>
+</body>
+</html>
